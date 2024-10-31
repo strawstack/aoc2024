@@ -6,6 +6,7 @@
     Copies template/p.js into day/<day_number>.
 */
 
+import { $ } from "bun";
 import { session } from './secret.js';
 import { readFileSync, writeFileSync, mkdirSync } from 'fs';
 
@@ -22,7 +23,8 @@ const input = await fetch(`https://adventofcode.com/${YEAR}/day/${DAY}/input`, {
 const data = await input.text();
 
 // Make day number dir
-mkdirSync(`day/${DAY}`);
+await $`mkdir -p day`;
+await $`mkdir -p day/${DAY}`;
 
 // Place input file
 writeFileSync(`day/${DAY}/input.txt`, data);
