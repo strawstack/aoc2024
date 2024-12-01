@@ -1,0 +1,8 @@
+{
+  "name": "adventofcode",
+  "module": "main.ts",
+  "type": "module",
+  "scripts": {
+    "make": "bun run make.js"
+  }
+}
