@@ -7,7 +7,7 @@ function sol(data) {
     let enabled = true;
     for (let match of res) {
         
-        const type = match[0].slice(0, 3);
+        const type = match[5] || match[4] || match[1];
         if (type === "mul") {
             
             if (enabled) {
@@ -18,7 +18,7 @@ function sol(data) {
                 }
             }
             
-        } else if (type === "do(") {
+        } else if (type === "do") {
             enabled = true;
 
         } else if(type === "don") {
