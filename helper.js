@@ -23,4 +23,19 @@ export function prototypes() {
         }
         return res;
     };
+    Object.prototype.add = function(vec) {
+        return {
+            x: this.x + vec.x,
+            y: this.y + vec.y,
+        };
+    };
+    Object.prototype.flip = function() {
+        return this.mul(-1);
+    };
+    Object.prototype.mul = function(s) {
+        return {
+            x: s * this.x,
+            y: s * this.y,
+        };
+    };
 }
