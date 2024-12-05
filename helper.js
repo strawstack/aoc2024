@@ -39,3 +39,7 @@ export function prototypes() {
         };
     };
 }
+
+export function not(value) {
+    return !value;
+}
