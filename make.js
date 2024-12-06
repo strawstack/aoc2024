@@ -47,7 +47,7 @@ watch(
                 const output = await $`bun run day/${filename}`.text();
                 console.log(output.trim());
             } catch(e) {
-                console.log(e);
+                console.log(String.fromCharCode(...e.info.stderr));
             }
 
             setTimeout(() => { debounce = true }, 100);

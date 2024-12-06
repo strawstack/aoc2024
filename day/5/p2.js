@@ -9,12 +9,12 @@ function sol(data) {
 
     function isValid(update, rules) {
         const lookup = update.reduce((a, c) => {
-            a[c] = Object.keys(a).length;
+            a[c] = a.keys().length;
             return a;
         }, {});
 
         // I assume no duplicates
-        if (Object.keys(lookup).length !== update.length) {
+        if (lookup.keys().length !== update.length) {
             throw new Error(`Duplicate found: ${update}`);
         }
 
@@ -45,11 +45,11 @@ function sol(data) {
         }
 
         const order = [];
-        while (Object.keys(verts).length > 0) {
+        while (verts.keys().length > 0) {
             const rem = [];
-            for (let v in verts) {
+            for (let v of verts.keys()) {
                 const { in_edge } = verts[v];
-                if (Object.keys(in_edge).length === 0) {
+                if (in_edge.keys().length === 0) {
                     rem.push(v);
                 }
             }
@@ -63,7 +63,7 @@ function sol(data) {
             });
         }
 
-        return order;
+        return order.map(n => parseInt(n));
     }
 
     const [rules_str, updates_str] = data.trim().split("\n\n");
