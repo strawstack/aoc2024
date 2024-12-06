@@ -33,6 +33,9 @@ export function prototypes() {
                 y: this.y + vec.y,
             };
         },
+        eq: function(vec) {
+            return this.x === vec.x && this.y === vec.y;
+        },
         flip: function() {
             return this.mul(-1);
         },
@@ -64,4 +67,8 @@ export function prototypes() {
 
 export function not(value) {
     return !value;
+}
+
+export function copy(value) {
+    return JSON.parse(JSON.stringify(value));
 }

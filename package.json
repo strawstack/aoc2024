@@ -3,6 +3,7 @@
   "module": "main.ts",
   "type": "module",
   "scripts": {
-    "make": "bun run make.js"
+    "make": "bun run make.js",
+    "bundle": "bun run bundle.js"
   }
 }
