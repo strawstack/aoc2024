@@ -72,6 +72,7 @@ function sol(data) {
         for (let x = 0; x < grid[y].length; x++) {
             const preserve = grid[y][x];
             if (main(grid, {x, y})) {
+                console.log(JSON.stringify({x, y}));
                 total += 1;
             }
             grid[y][x] = preserve;
