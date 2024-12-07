@@ -72,3 +72,10 @@ export function not(value) {
 export function copy(value) {
     return JSON.parse(JSON.stringify(value));
 }
+
+export function time(func) {
+    const start = new Date();
+    const ans = func();
+    console.log(`time: ${(new Date()) - start}`);
+    console.log(ans);
+}
