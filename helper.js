@@ -33,6 +33,12 @@ export function prototypes() {
                 y: this.y + vec.y,
             };
         },
+        sub: function(vec) {
+            return {
+                x: this.x - vec.x,
+                y: this.y - vec.y,
+            };
+        },
         eq: function(vec) {
             return this.x === vec.x && this.y === vec.y;
         },
@@ -78,4 +84,8 @@ export function time(func) {
     const ans = func();
     console.log(`time: ${(new Date()) - start}`);
     console.log(ans);
+}
+
+export function hash(value) {
+    return JSON.stringify(value);
 }
