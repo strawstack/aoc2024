@@ -89,3 +89,7 @@ export function time(func) {
 export function hash(value) {
     return JSON.stringify(value);
 }
+
+export function inBounds(grid, {x, y}) {
+    return y >= 0 && y < grid.length && x >= 0 && x < grid[y].length;
+}
