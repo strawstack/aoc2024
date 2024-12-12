@@ -53,6 +53,9 @@ export function prototypes() {
         },
         keys: function() {
             return Object.keys(this).filter(k => this.hasOwnProperty(k));
+        },
+        values: function() {
+            return Object.values(this);
         }
     };
 
@@ -93,3 +96,29 @@ export function hash(value) {
 export function inBounds(grid, {x, y}) {
     return y >= 0 && y < grid.length && x >= 0 && x < grid[y].length;
 }
+
+export const adj4 = [
+    {x: 0, y: -1},
+    {x: 1, y: 0},
+    {x: 0, y: 1},
+    {x: -1, y: 0}
+];
+
+export const adj8 = [
+    ...adj4,
+    {x: 1, y: -1},
+    {x: 1, y: 1},
+    {x: -1, y: 1},
+    {x: -1, y: -1}
+];
+
+export const dir = {
+    UP: {x: 0, y: -1},
+    RIGHT: {x: 1, y: 0},
+    DOWN: {x: 0, y: 1},
+    LEFT: {x: -1, y: 0},
+    UP_RIGHT: {x: 1, y: -1},
+    DOWN_RIGHT: {x: 1, y: 1},
+    DOWN_LEFT: {x: -1, y: 1},
+    UP_LEFT: {x: -1, y: -1}
+};
