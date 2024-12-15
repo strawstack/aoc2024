@@ -56,6 +56,9 @@ export function prototypes() {
         },
         values: function() {
             return Object.values(this);
+        },
+        mag: function() {
+            return Math.sqrt(Math.pow(this.x, 2) + Math.pow(this.y, 2));
         }
     };
 
@@ -122,3 +125,41 @@ export const dir = {
     DOWN_LEFT: {x: -1, y: 1},
     UP_LEFT: {x: -1, y: -1}
 };
+
+export function gcd(a, b) {
+    if (b) {
+        return gcd(b, a % b);
+    } else {
+        return Math.abs(a);
+    }
+}
+
+export function egcd(a, b) {
+    let x = 0;
+    let y = 1;
+    let u = 1;
+    let v = 0;
+    let q, r, m, n;
+    
+    a = Math.abs(a);
+    b = Math.abs(b);
+  
+    while (a !== 0) {
+      q = Math.floor(b / a);
+      r = b % a;
+      m = x - u * q;
+      n = y - v * q;
+      b = a;
+      a = r;
+      x = u;
+      y = v;
+      u = m;
+      v = n;
+    }
+    
+    return {
+        gcd: b,
+        s: x,
+        t: y
+    };
+  }
