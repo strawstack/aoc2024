@@ -1,49 +1,71 @@
 import input from './input.txt';
 import { prototypes } from '../../helper.js';
 
-function solve({ ax, ay, bx, by, x, y }) {
-    const ayax = ay / ax;
-    const ab = (y / x) - ayax;
-    const bybx = by / bx;
-    const x_inter = ab / (bybx - (ay / ax));
-    const y_inter = bybx * x_inter;
+function mdic(n, target) {
+    const d = {};
+    const base = n;
+    let cur = n;
+    let index = 1;
+    while (cur <= target) {
+        d[cur] = index;
+        cur += base;
+        index += 1;
+    }
+    return d;
+}
 
-    console.log({ ax, ay, bx, by, x, y });
+function solve_p1({ ax, ay, bx, by, x, y }) {
+    const bxm = mdic(bx, x);
 
-    console.log(ayax);
-    console.log(ab);
-    console.log(bybx);
-    console.log(x_inter);
-    console.log(y_inter);
-
-    const b_dist = Math.sqrt((x_inter ** BigInt(2)) + Math.pow(y_inter, 2));
-    const a_dist = Math.sqrt(Math.pow(y - y_inter, 2) + Math.pow(x - x_inter, 2));
-
-    console.log(b_dist);
-    console.log(a_dist);
-
-    const a_mag = ({x: ax, y: ay}).mag();
-    const b_mag = ({x: bx, y: by}).mag();
-
-    console.log(a_mag);
-    console.log(b_mag);
-
-    const a_times = Math.round(a_dist / a_mag);
-    const b_times = Math.round(b_dist / b_mag);
-
-    console.log(a_times);
-    console.log(b_times);
-    console.log("");
-
-    if (
-        ({x: ax, y: ay}).mul(a_times)
-            .add(({x: bx, y: by}).mul(b_times)) 
-            .eq({x, y})
-        ) {
-            return 3 * a_times + b_times;
+    // For every number of presses of 'a'...
+    for (let a = 0; a <= 100; a++) {
+        
+        // Get the resulting 'x' value
+        const xr = x - ax * a;
+        const yr = y - ay * a;
+        
+        // Can 'bx' match the result and does the 'by' line up as well
+        if (xr in bxm && by * bxm[xr] === yr) {
+            return {
+                at: a,
+                bt: bxm[xr]
+            };
+        }
     }
 
-    return 0;
+    return {
+        at: null,
+        bt: null
+    };
+}
+
+function num(n) {
+    return parseInt(n.toString(), 10);
+}
+
+function solve({ ax, ay, bx, by, x, y }) {
+    const av = {x: num(ax), y: num(ay)};
+    const bv = {x: num(bx), y: num(by)};
+    const pv = {x: num(x), y: num(y)};
+
+    const t1 = ((y * ax) - (ay * x)) * (ax * bx);
+    const t2 = ax * ((ax * by) - (ay * bx));
+
+    const g1 = num(x * t2 - t1);
+    const g2 = num(t2 * ax);
+    const g4 = num(t2 * bx);
+    const n1 = num(t1);
+
+    const at = g1 / g2;
+    const bt = n1 / g4;
+
+    console.log(at, bt);
+
+    // if ( av.mul(at).add(bv.mul(bt)).sub(pv).mag() < 8 ) {
+    //     return 3 * at + bt;
+    // } else {
+    //     return 0;
+    // }
 }
 
 function sol(data) {
@@ -52,19 +74,26 @@ function sol(data) {
             const result = [
                 ...pack.matchAll(/X\+(\d+), Y\+(\d+)\n.+X\+(\d+), Y\+(\d+)\n.+X=(\d+), Y=(\d+)/g)
             ];
-            const ax = BigInt(parseInt(result[0][1]));
-            const ay = BigInt(parseInt(result[0][2]));
-            const bx = BigInt(parseInt(result[0][3]));
-            const by = BigInt(parseInt(result[0][4]));
-            const x = BigInt(parseInt(result[0][5]));
-            const y = BigInt(parseInt(result[0][6]));
-            const big = BigInt(10000000000000);
-            const xv = x - big;
-            const yv = y - big;
-            return { ax, ay, bx, by, x: xv, y: yv };
+            const ax = parseInt(result[0][1]);
+            const ay = parseInt(result[0][2]);
+            const bx = parseInt(result[0][3]);
+            const by = parseInt(result[0][4]);
+            const x = parseInt(result[0][5]);
+            const y = parseInt(result[0][6]);
+            const big = BigInt(0);// BigInt(10000000000000); // BigInt
+            const big_x = BigInt(x) - big;
+            const big_y = BigInt(y) - big;
+            return {
+                ax: BigInt(ax), 
+                ay: BigInt(ay), 
+                bx: BigInt(bx), 
+                by: BigInt(by), 
+                x: big_x, 
+                y: big_y
+            };
         });
 
-    let total = BigInt(0);
+    let total = 0;
     for (const machine of machines) {
         total += solve(machine);
     }

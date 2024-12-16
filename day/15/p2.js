@@ -68,19 +68,24 @@ function print({ boxes, walls, player }) {
 function findOpenSpace(pos, push_dir, { boxes, walls }, seen, collect) {
     const h = hash(pos);
     if (h in seen) return true;
-    seen[h] = true;
-
-    collect[h] = pos;
+    
     if (h in walls) return false;
     if (h in boxes) {
         const b1 = pos;
+        const b1h = hash(b1);
+        collect[b1h] = b1;
+        seen[b1h] = true;
         const r1 = findOpenSpace(b1.add(push_dir), push_dir, { boxes, walls }, seen, collect);
 
         const b2 = boxes[h];
+        const b2h = hash(b2);
+        collect[b2h] = b2;
+        seen[b2h] = true;
         const r2 = findOpenSpace(b2.add(push_dir), push_dir, { boxes, walls }, seen, collect);
 
         if (!r1) return false;
         if (!r2) return false;
+        return true;
 
     } else {
         return true;
@@ -128,27 +133,28 @@ function solve({ boxes, walls, player, dirs }) {
                 player = t;
                 for (let box of boxList) {
                     const p = hash(box);
-                    const n = hash(box.add(push_dir));
+                    const link = boxes[p];
                     delete boxes[p];
-                    boxes[n] = box.add(push_dir);
+                    const n = hash(box.add(push_dir));
+                    boxes[n] = link.add(push_dir);
                 }
             }
         } else { // move to open space
             player = t;
 
         }
+
+        // print({ boxes, walls, player });
         
     }
-
-    print({ boxes, walls, player });
 
     const seen = {};
     return boxes.values().reduce((a, {x, y}) => {
         const h = hash({x, y});
-        if (h in seen) return a;
-
         const o = boxes[hash({x, y})];
-        
+        const oh = hash(o);
+        if (h in seen || oh in seen) return a;
+
         seen[h] = true;
         seen[hash(o)] = true;
 
@@ -162,7 +168,7 @@ function solve({ boxes, walls, player, dirs }) {
 }
 
 prototypes();
-// console.log(sol(input));
+console.log(sol(input));
 
 const test = `##########
 #..O..O.O#
@@ -185,4 +191,13 @@ vvv<<^>^v^^><<>>><>^<<><^vv^^<>vvv<>><^^v>^>vv<>v<<<<v<^v>^<^^>>>^<v<v
 <><^^>^^^<><vvvvv^v<v<<>^v<v>v<<^><<><<><<<^^<<<^<<>><<><^^^>^^<>^>v<>
 ^^>vv<^v^v<vv>^<><v<^v>^^^>>>^^vvv^>vvv<>>>^<^>>>>>^<<^v>^vvv<>^<><<v>
 v^^>>><<^^<>>^v^<v^vv<>v^<<>^<^v^v><^<<<><<^<v><v<>vv>>v><v^<vv<>v^<<^`;
-console.log(sol(test))
+const test2 = `#######
+#...#.#
+#.....#
+#..OO@#
+#..O..#
+#.....#
+#######
+
+<vv<<^^<<^^`;
+// console.log(sol(test))
