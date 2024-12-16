@@ -74,6 +74,9 @@ function prototypes() {
     });
   }
 }
+function not(value) {
+  return !value;
+}
 function hash(value) {
   return JSON.stringify(value);
 }
@@ -101,131 +104,175 @@ var dir = {
   UP_LEFT: { x: -1, y: -1 }
 };
 
-// day/15/p2.js
+// day/16/p2.js
+function rot(d) {
+  const lookup = {
+    UP: "RIGHT",
+    RIGHT: "DOWN",
+    DOWN: "LEFT",
+    LEFT: "UP"
+  };
+  return lookup[d];
+}
+function follow(pos, parent, tiles) {
+  let cur = pos;
+  while (true) {
+    const hc3 = hash3(cur.pos, cur.face);
+    tiles[hash(cur.pos)] = true;
+    cur = parent[hc3];
+    if (!cur)
+      break;
+  }
+}
+function dij({ end, walls, visited, dist, heap: heap2, parent, tiles, best }) {
+  while (heap2.length > 0) {
+    const { key, pos, face } = heap2.pop();
+    if (pos.eq(end)) {
+      if (best === null)
+        best = dist[key];
+      if (dist[key] === best) {
+        debugger;
+        follow({ pos, face }, parent, tiles);
+      }
+      continue;
+    }
+    const edges = [
+      {
+        face,
+        cost: 1
+      },
+      {
+        face: rot(face),
+        cost: 1000 + 1
+      },
+      {
+        face: rot(rot(rot(face))),
+        cost: 1000 + 1
+      }
+    ];
+    for (const { face: face2, cost } of edges) {
+      const t1 = pos.add(dir[face2]);
+      const h3 = hash3(t1, face2);
+      if (not(hash(t1) in walls)) {
+        const isNew = not(h3 in dist);
+        if (isNew || dist[key] + cost < dist[h3]) {
+          dist[h3] = dist[key] + cost;
+          parent[h3] = { pos, face: face2 };
+          if (isNew) {
+            heap2.push({
+              key: h3,
+              pos: t1,
+              face: face2
+            });
+          }
+        }
+      }
+    }
+    heap2.sort((a, b) => dist[b.key] - dist[a.key]);
+  }
+  return;
+}
+function hash3({ x, y }, face) {
+  return `${x}:${y}:${face}`;
+}
+function print(walls, tiles, grid) {
+  const height = grid.length;
+  const width = grid[0].length;
+  for (let y = 0;y < height; y++) {
+    const row = [];
+    for (let x = 0;x < width; x++) {
+      const h = hash({ x, y });
+      if (h in walls) {
+        row.push("#");
+      } else if (h in tiles) {
+        row.push("O");
+      } else {
+        row.push(".");
+      }
+    }
+    console.log(row.join(""));
+  }
+  console.log("");
+}
 function sol(data) {
-  data = data.trim().split("\n\n");
-  const { boxes, walls, player } = (() => {
-    const grid = data[0].split("\n").map((line) => line.split(""));
-    const boxes2 = {};
+  const { start, end, walls } = (() => {
+    const grid = data.trim().split("\n").map((line) => line.split(""));
+    const start2 = { x: null, y: null };
+    const end2 = { x: null, y: null };
     const walls2 = {};
-    const player2 = { x: null, y: null };
     grid.forEach((_, y) => {
       grid[y].forEach((c, x) => {
-        if (c === "#") {
-          walls2[hash({ x: 2 * x, y })] = true;
-          walls2[hash({ x: 2 * x + 1, y })] = true;
-        } else if (c === "O") {
-          boxes2[hash({ x: 2 * x, y })] = { x: 2 * x + 1, y };
-          boxes2[hash({ x: 2 * x + 1, y })] = { x: 2 * x, y };
-        } else if (c === "@") {
-          player2.x = 2 * x;
-          player2.y = y;
+        if (c === "S") {
+          start2.x = x;
+          start2.y = y;
+        } else if (c === "E") {
+          end2.x = x;
+          end2.y = y;
+        } else if (c === "#") {
+          walls2[hash({ x, y })] = { x, y };
         }
       });
     });
-    return { boxes: boxes2, walls: walls2, player: player2 };
+    return { start: start2, end: end2, walls: walls2 };
   })();
-  const dirs = data[1].split("\n").join("").split("").map((s) => {
-    const lookup = {
-      "^": "UP",
-      ">": "RIGHT",
-      v: "DOWN",
-      "<": "LEFT"
-    };
-    return dir[lookup[s]];
+  const dist = {};
+  const face = "RIGHT";
+  const h3 = hash3(start, face);
+  dist[h3] = 0;
+  const myheap = [{
+    key: h3,
+    pos: start,
+    face
+  }];
+  const parent = {
+    [h3]: null
+  };
+  const tiles = {};
+  dij({
+    end,
+    walls,
+    visited: {},
+    dist,
+    heap: myheap,
+    parent,
+    tiles,
+    best: null
   });
-  return solve({ boxes, walls, player, dirs });
-}
-function findOpenSpace(pos, push_dir, { boxes, walls }, seen, collect) {
-  const h = hash(pos);
-  if (h in seen)
-    return true;
-  if (h in walls)
-    return false;
-  if (h in boxes) {
-    const b1 = pos;
-    const b1h = hash(b1);
-    collect[b1h] = b1;
-    seen[b1h] = true;
-    const r1 = findOpenSpace(b1.add(push_dir), push_dir, { boxes, walls }, seen, collect);
-    const b2 = boxes[h];
-    const b2h = hash(b2);
-    collect[b2h] = b2;
-    seen[b2h] = true;
-    const r2 = findOpenSpace(b2.add(push_dir), push_dir, { boxes, walls }, seen, collect);
-    if (!r1)
-      return false;
-    if (!r2)
-      return false;
-    return true;
-  } else {
-    return true;
-  }
-}
-function openSpace(start, push_dir, { boxes, walls }) {
-  const seen = {};
-  const collect = {};
-  const res = findOpenSpace(start, push_dir, { boxes, walls }, seen, collect);
-  let lst = null;
-  if (push_dir.x === 0) {
-    if (push_dir.y === -1) {
-      lst = collect.values().sort((a, b) => a.y - b.y);
-    } else {
-      lst = collect.values().sort((a, b) => b.y - a.y);
-    }
-  } else {
-    if (push_dir.x === -1) {
-      lst = collect.values().sort((a, b) => a.x - b.x);
-    } else {
-      lst = collect.values().sort((a, b) => b.x - a.x);
-    }
-  }
-  return res ? lst : false;
-}
-function solve({ boxes, walls, player, dirs }) {
-  for (const dir2 of dirs) {
-    const t = player.add(dir2);
-    const h = hash(t);
-    if (h in walls)
-      continue;
-    if (h in boxes) {
-      const push_dir = t.sub(player);
-      const boxList = openSpace(t, push_dir, { boxes, walls });
-      if (boxList) {
-        player = t;
-        for (let box of boxList) {
-          const p = hash(box);
-          delete boxes[p];
-          const n = hash(box.add(push_dir));
-          const value = box.add(push_dir);
-          boxes[n] = value;
-        }
-      }
-    } else {
-      player = t;
-    }
-  }
-  const seen = {};
-  return boxes.values().reduce((a, { x, y }) => {
-    const h = hash({ x, y });
-    const o = boxes[hash({ x, y })];
-    const oh = hash(o);
-    if (h in seen || oh in seen)
-      return a;
-    seen[h] = true;
-    seen[hash(o)] = true;
-    const value = Math.min(100 * y + x, 100 * o.y + o.x);
-    return a + value;
-  }, 0);
+  print(walls, tiles, data.trim().split("\n"));
+  return `Ans: ${tiles.keys().length}`;
 }
 prototypes();
-var test2 = `#######
-#...#.#
-#.....#
-#..OO@#
-#..O..#
-#.....#
-#######
-
-<vv<<^^<<^^`;
-console.log(sol(test2));
+var test_45 = `###############
+#.......#....E#
+#.#.###.#.###.#
+#.....#.#...#.#
+#.###.#####.#.#
+#.#.#.......#.#
+#.#.#####.###.#
+#...........#.#
+###.#.#####.#.#
+#...#.....#.#.#
+#.#.#.###.#.#.#
+#.....#...#.#.#
+#.###.#.#.#.#.#
+#S..#.....#...#
+###############`;
+var test_64 = `#################
+#...#...#...#..E#
+#.#.#.#.#.#.#.#.#
+#.#.#.#...#...#.#
+#.#.#.#.###.#.#.#
+#...#.#.#.....#.#
+#.#.#.#.#.#####.#
+#.#...#.#.#.....#
+#.#.#####.#.###.#
+#.#.#.......#...#
+#.#.###.#####.###
+#.#.#...#.....#.#
+#.#.#.#####.###.#
+#.#.#.........#.#
+#.#.#.#########.#
+#S#.............#
+#################`;
+console.log(sol(test_45));
+console.log(sol(test_64));
