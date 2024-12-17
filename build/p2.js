@@ -114,14 +114,14 @@ function rot(d) {
   };
   return lookup[d];
 }
-function follow(pos, parent, tiles) {
-  let cur = pos;
-  while (true) {
-    const hc3 = hash3(cur.pos, cur.face);
-    tiles[hash(cur.pos)] = true;
-    cur = parent[hc3];
-    if (!cur)
-      break;
+function follow(cur, parent, tiles) {
+  for (let c of cur) {
+    const hc3 = hash3(c.pos, c.face);
+    tiles[hash(c.pos)] = true;
+    const nx = parent[hc3];
+    if (nx.length > 0) {
+      follow(nx, parent, tiles);
+    }
   }
 }
 function dij({ end, walls, visited, dist, heap: heap2, parent, tiles, best }) {
@@ -132,10 +132,13 @@ function dij({ end, walls, visited, dist, heap: heap2, parent, tiles, best }) {
         best = dist[key];
       if (dist[key] === best) {
         debugger;
-        follow({ pos, face }, parent, tiles);
+        follow([{ pos, face }], parent, tiles);
       }
       continue;
     }
+    if (key in visited)
+      continue;
+    visited[key] = true;
     const edges = [
       {
         face,
@@ -150,20 +153,27 @@ function dij({ end, walls, visited, dist, heap: heap2, parent, tiles, best }) {
         cost: 1000 + 1
       }
     ];
+    const parent_face = face;
     for (const { face: face2, cost } of edges) {
       const t1 = pos.add(dir[face2]);
       const h3 = hash3(t1, face2);
       if (not(hash(t1) in walls)) {
         const isNew = not(h3 in dist);
-        if (isNew || dist[key] + cost < dist[h3]) {
-          dist[h3] = dist[key] + cost;
-          parent[h3] = { pos, face: face2 };
+        if (isNew || dist[key] + cost <= dist[h3]) {
           if (isNew) {
+            parent[h3] = [{ pos, face: parent_face }];
             heap2.push({
               key: h3,
               pos: t1,
               face: face2
             });
+          } else {
+            if (dist[key] + cost === dist[h3]) {
+              parent[h3].push({ pos, face: parent_face });
+            } else {
+              parent[h3] = [{ pos, face: parent_face }];
+              dist[h3] = dist[key] + cost;
+            }
           }
         }
       }
@@ -174,25 +184,6 @@ function dij({ end, walls, visited, dist, heap: heap2, parent, tiles, best }) {
 }
 function hash3({ x, y }, face) {
   return `${x}:${y}:${face}`;
-}
-function print(walls, tiles, grid) {
-  const height = grid.length;
-  const width = grid[0].length;
-  for (let y = 0;y < height; y++) {
-    const row = [];
-    for (let x = 0;x < width; x++) {
-      const h = hash({ x, y });
-      if (h in walls) {
-        row.push("#");
-      } else if (h in tiles) {
-        row.push("O");
-      } else {
-        row.push(".");
-      }
-    }
-    console.log(row.join(""));
-  }
-  console.log("");
 }
 function sol(data) {
   const { start, end, walls } = (() => {
@@ -225,7 +216,7 @@ function sol(data) {
     face
   }];
   const parent = {
-    [h3]: null
+    [h3]: []
   };
   const tiles = {};
   dij({
@@ -238,7 +229,6 @@ function sol(data) {
     tiles,
     best: null
   });
-  print(walls, tiles, data.trim().split("\n"));
   return `Ans: ${tiles.keys().length}`;
 }
 prototypes();
