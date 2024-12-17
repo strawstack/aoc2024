@@ -146,32 +146,8 @@ export function gcd(a, b) {
     }
 }
 
-export function egcd(a, b) {
-    let x = 0;
-    let y = 1;
-    let u = 1;
-    let v = 0;
-    let q, r, m, n;
-    
-    a = Math.abs(a);
-    b = Math.abs(b);
-  
-    while (a !== 0) {
-      q = Math.floor(b / a);
-      r = b % a;
-      m = x - u * q;
-      n = y - v * q;
-      b = a;
-      a = r;
-      x = u;
-      y = v;
-      u = m;
-      v = n;
-    }
-    
-    return {
-        gcd: b,
-        s: x,
-        t: y
-    };
-  }
+export function mod(a, b) {
+    const v = a % b;
+    return (v < 0) ? v + b : v;
+}
+
