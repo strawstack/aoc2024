@@ -59,7 +59,15 @@ export function prototypes() {
         },
         mag: function() {
             return Math.sqrt(Math.pow(this.x, 2) + Math.pow(this.y, 2));
-        }
+        },
+        modv: function(vec) {
+            const x = this.x % vec.x;
+            const y = this.y % vec.y;
+            return {
+                x: (x < 0) ? x + vec.x : x,
+                y: (y < 0) ? y + vec.y : y
+            };
+        } 
     };
 
     for (let k in arr) {
@@ -98,6 +106,10 @@ export function hash(value) {
 
 export function inBounds(grid, {x, y}) {
     return y >= 0 && y < grid.length && x >= 0 && x < grid[y].length;
+}
+
+export function inBounds2(width, height, {x, y}) {
+    return y >= 0 && y < height && x >= 0 && x < width;
 }
 
 export const adj4 = [
