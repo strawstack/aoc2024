@@ -39,7 +39,7 @@ export function prototypes() {
                 y: this.y - vec.y,
             };
         },
-        eq: function(vec) {
+        equal: function(vec) {
             return this.x === vec.x && this.y === vec.y;
         },
         flip: function() {
