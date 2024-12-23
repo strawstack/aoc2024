@@ -32,46 +32,49 @@ function queue() {
     };
 }
 
-function letters(value) {
-    const lookup = {
-        '^': 'U',
-        '>': 'R',
-        'v': 'D',
-        '<': 'L'
-    };
-    if (value in lookup) return lookup[value];
-    return value;
-}
-
-function bfs(p, map, visited, grid) {
+function bfs(p, map, grid) {
     const q = queue();
     q.push({
         pos: p,
         path: []
     });
 
+    const orig = grid[p.y][p.x];
+
     while (q.size() > 0) {
         const { pos, path } = q.pop();
-        const hn = hash(pos);
-        visited[hn] = true;
 
         for (const a of adj4) {
             const t = pos.add(a);
-            const ht = hash(t);
             
             if (not(inBounds(grid, t))) continue; // must be in bounds
             if (grid[t.y][t.x] === " ") continue; // don't step on gap
-            if (ht in visited) continue; // not already visited
 
             const cpath = copy(path);
             cpath.push(a);
 
-            map[letters(grid[t.y][t.x])] = cpath;
+            const symb = grid[t.y][t.x];
+            if (symb === orig) continue;
+
+            if (not(symb in map)) map[symb] = [];
+            map[symb].push(cpath);
+
+            if (cpath.length > 5) continue;
 
             q.push({
                 pos: t,
                 path: cpath
             });
+        }
+    }
+
+    for (const from in map) {
+        for (const to in map[from]) {
+            let short = Infinity;
+            for (const path of map[from][to]) {
+                short = Math.min(short, path.length);
+            }
+            map[from][to] = map[from][to].filter(path => path.length <= short);
         }
     }
 
@@ -86,8 +89,7 @@ function wireGrid(grid) {
             if (c === " ") continue;
             
             const map = {};
-            const visited = {};
-            wires[letters(c)] = bfs({x, y}, map, visited, grid);
+            wires[c] = bfs({x, y}, map, grid);
         }
     }
     return wires;
@@ -101,6 +103,14 @@ function convert(seq) {
         [hash({x: -1, y: 0})]: "L"
     };
     return seq.map(p => lookup[hash(p)]);
+}
+
+function tryAll(seq, pads) {
+
+    for (let i = 0; i < seq.length; i++) {
+
+    }
+
 }
 
 function enter(seq, pad) {
@@ -135,25 +145,10 @@ function sol(data) {
         "LDR"
     ]);
 
-    const pad2 = wireGrid([
-        " UA",
-        "LDR"
-    ]);
-
-    const pad3 = wireGrid([
-        " UA",
-        "LDR"
-    ]);
-
     const res = {};
     for (let code of codes) {
-        console.log(`code: ${code}`);
         let seq = code.split("");
-        console.log(`seq: ${seq}`);
-        for (let pad of [pad0, pad1, pad2, pad3]) {
-            seq = enter(seq, pad);
-            console.log(seq);
-        }
+        seq = tryAll(seq, [pad0, pad1, pad1, pad1]);
         res[code] = {
             value: parseInt(code.slice(0, code.length - 1), 10),
             seq 
@@ -161,7 +156,6 @@ function sol(data) {
     }
 
     return res.values().reduce((a, { value, seq }) => {
-        console.log(seq.length, value);
         return a + value * seq.length;
     }, 0);
 
@@ -169,10 +163,6 @@ function sol(data) {
 
 prototypes();
 // console.log(sol(input));
-
-// NOTE: There's a pref to travel straight 
-// like v<< instead of <v< because higher order bots will be more efficient
-// Instead of bfs to work out the patterns we should use a more custom approach
 
 console.log(sol(`029A
 980A
