@@ -1,95 +1,42 @@
 import input from './input.txt';
 import { prototypes, not } from '../../helper.js';
 
-// function dfs(graph, visited, k, comps) {
-//     if (k in visited) return comps;
-//     visited[k] = true;
-
-//     const res = [];
-//     for (const other in graph[k]) {
-//         for (const cp of dfs(graph, visited, other, [])) {
-//             res.push(cp);
-//         }
-//     }
-//     res.push(k);
-//     return res;
-// }
-
-function check(graph, comps) {
-    for (let i = 0; i < comps.length; i++) {
-        for (let j = i + 1; j < comps.length; j++) {
-            const a = comps[i];
-            const b = comps[j];
-            if (not(b in graph[a])) return false;
+function investigate(graph, comp) {
+    const sets = [];
+    const votes = {};
+    votes[comp] = 1;
+    for (const other in graph[comp]) {
+        votes[other] = 1;
+        const set = {};
+        set[other] = true;
+        for(const k in graph[other]) {
+            set[k] = true;
         }
-    }
-    return true;
-}
-
-function create(comps, size) {
-
-    function createRecursive(bag, comps, size, index, ans) {
-        const keys = bag.keys();
-        if (keys.length === size) {
-            ans.push(keys);
-
-        } else {
-            for (let i = index; i < comps.length; i++) {
-                const a = comps[i];
-                if (not(a in bag)) {
-                    bag[a] = true;
-                    createRecursive(bag, comps, size, index + 1, ans);
-                    delete bag[a];
-                }
-            }
-        }
+        sets.push(set);
     }
 
-    let index = 0;
-    const ans = [];
-    for (const comp of comps) {
-        const bag = { [comp]: true };
-        createRecursive(bag, comps, size, index + 1, ans);
-        delete bag[comp];
-        index += 1;
-    }
-    return ans;
-}
-
-function createAndCheck(graph, comps, mi) {
-    const sets = create(comps, mi);
     for (const set of sets) {
-        if (check(graph, set)) return true;
-    }
-    return false;
-}
-
-function binary(graph, comps) {
-    let lo = 0;
-    let hi = comps.length - 1;
-    let mi = null;
-    while (lo < hi) {
-        mi = Math.ceil((lo + hi) / 2);
-
-        if (createAndCheck(graph, comps, mi)) {
-            lo = mi;
-
-        } else {
-            hi = mi - 1;
-
+        for (const comp in set) {
+            if (not(comp in votes)) votes[comp] = 0;
+            votes[comp] += 1;
         }
     }
-    return mi;
-}
 
-function linear(graph, comps) {
-    for (let i = 3; i < comps.length; i++) {
-        console.log(i);
-        if(!createAndCheck(graph, comps, i)) {
-            return i - 1;
+    let best = 0;
+    for (const k in votes) {
+        if (k === comp) continue;
+        const number = votes[k];
+        best = Math.max(best, number);
+    }
+
+    const ans = [];
+    for (const k in votes) {
+        if (votes[k] >= best) {
+            ans.push(k);
         }
     }
-    throw new Error("Should not reach");
+
+    return ans;
 }
 
 function sol(data) {
@@ -102,13 +49,52 @@ function sol(data) {
         graph[a][b] = true;
         graph[b][a] = true;
     }
-
     const comps = graph.keys();
-    // const ans = binary(graph, comps);
-    const ans = linear(graph, comps);
 
+    const groups = [];
+    for (const comp of comps) {
+        const group = investigate(graph, comp);
+        groups.push(group);
+    }
+
+    const big = groups.sort((a, b) => b.length - a.length)[0];
+    const ans = big.sort((a, b) => a.localeCompare(b)).join(",");
     return ans;
 }
 
 prototypes();
 console.log(sol(input));
+
+// console.log(sol(`kh-tc
+// qp-kh
+// de-cg
+// ka-co
+// yn-aq
+// qp-ub
+// cg-tb
+// vc-aq
+// tb-ka
+// wh-tc
+// yn-cg
+// kh-ub
+// ta-co
+// de-co
+// tc-td
+// tb-wq
+// wh-td
+// ta-ka
+// td-qp
+// aq-cg
+// wq-ub
+// ub-vc
+// de-ta
+// wq-aq
+// wq-vc
+// wh-yn
+// ka-de
+// kh-ta
+// co-tc
+// wh-qp
+// tb-vc
+// td-yn
+// `));
